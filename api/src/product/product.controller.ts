@@ -1,12 +1,23 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ProductService } from './product.service';
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
   @Get()
-  getProduct() {
-    return '123';
+  async getAllProduct() {
+    try {
+      return this.productService.findAll();
+    } catch (error) {}
+  }
+
+  @Get(':id')
+  async getProductById(@Param('id') id: string) {
+    try {
+      return this.productService.findById(id);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   @Post()
@@ -15,16 +26,27 @@ export class ProductController {
     @Body('price') price: string,
     @Body('description') description?: string,
   ) {
-    try {
-      const newProduct = await this.productService.create(
-        name,
-        price,
-        description,
-      );
+    const newProduct = await this.productService.create(
+      name,
+      price,
+      description,
+    );
 
-      return newProduct;
-    } catch (error) {
-      console.log(error);
-    }
+    return newProduct;
+  }
+
+  @Post(':id')
+  async updateProduct(
+    @Param('id') id: string,
+    @Body('name') name: string,
+    @Body('price') price: string,
+    @Body('description') description?: string,
+  ) {
+    await this.productService.updateProduct(id, { name, price, description });
+  }
+
+  @Delete(':id')
+  async deleteProduct(@Param('id') id: string) {
+    return this.productService.deleteProduct(id);
   }
 }
