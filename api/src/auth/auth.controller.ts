@@ -20,4 +20,9 @@ export class AuthController {
   ): Promise<{ access_token: string }> {
     return this.authService.login(user);
   }
+
+  @Post('verify-jwt')
+  async verifyJwt(@Body() payload: { jwt: string }): Promise<{ exp: number }> {
+    return this.authService.verifyJwt(payload.jwt);
+  }
 }

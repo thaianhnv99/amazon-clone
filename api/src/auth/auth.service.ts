@@ -80,6 +80,9 @@ export class AuthService {
   async login(exitUser: ExitstingUserDTO): Promise<{ access_token: string }> {
     const user = await this.validateUser(exitUser.email, exitUser.password);
 
+    if (!user)
+      throw new HttpException('Credentials incorrect', HttpStatus.UNAUTHORIZED);
+
     const token = await this.jwtService.signAsync({
       user,
     });
@@ -91,5 +94,15 @@ export class AuthService {
     hashedPassword: string,
   ): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
+  }
+
+  async verifyJwt(jwt: string): Promise<{ exp: number }> {
+    try {
+      const exp = await this.jwtService.verifyAsync(jwt);
+
+      return exp;
+    } catch (error) {
+      throw new HttpException('Invalid jwt', HttpStatus.UNAUTHORIZED);
+    }
   }
 }

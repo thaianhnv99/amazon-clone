@@ -5,14 +5,17 @@ import Grid from "@mui/material/Grid";
 import InputLabel from "@mui/material/InputLabel";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { FormEvent, useCallback, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import useInput from "../../hooks/use-input";
 import {
   validateNameLength,
   validatePasswordLength,
 } from "../../shared/utils/validation/models/length";
 import { validateEmail } from "../../shared/utils/validation/models/email";
+import { useAppDispatch, useAppSelector } from "../../states/hooks";
+import { register, reset } from "../../states/auth/authSlice";
+import { CircularProgress } from "@mui/material";
 
 const RegisterForm = () => {
   const {
@@ -47,6 +50,11 @@ const RegisterForm = () => {
     clearHandle: confirmPasswordClear,
   } = useInput(validatePasswordLength);
 
+  const dispatch = useAppDispatch();
+  const { isLoading, isSuccess } = useAppSelector((state) => state.auth);
+
+  const navigate = useNavigate();
+
   const onSubmitHandle = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -68,15 +76,34 @@ const RegisterForm = () => {
     };
     console.log("Submit register", newUser);
 
-    clearForm();
+    dispatch(register(newUser));
   };
 
-  const clearForm = () => {
+  const clearForm = useCallback(() => {
     nameClear();
     emailClear();
     passwordClear();
     confirmPasswordClear();
-  };
+  }, [confirmPasswordClear, emailClear, nameClear, passwordClear]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      dispatch(reset());
+      clearForm();
+      navigate("/signin");
+    }
+  }, [clearForm, dispatch, isSuccess, navigate]);
+
+  if (isLoading)
+    return (
+      <CircularProgress
+        sx={{
+          marginTop: "64px",
+        }}
+        color="primary"
+      />
+    );
+
   return (
     <Box
       sx={{
